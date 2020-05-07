@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+{% block title %}Add{% endblock %}
+{% block header %}Add a memory{% endblock %}
+{% block body %}
+<div style="position: absolute; top: 0; right: 0;">
+    {% if added %}
+    <div class="toast mx-3 mt-3" aria-live="assertive" aria-atomic="true" data-autohide="false">
+        <div class="toast-header">
+        <i class="fa fa-check mr-2" style="color: green;"></i>
+        <strong class="mr-auto">Added Memory #{{ id - 1 }}</strong>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        </div>
+        <div class="toast-body">
+            Successfully added a new memory to the database.
+        </div>
+    </div>
+    {% endif %}
+    {% if failed %}
+    <div class="toast mx-3 mt-3" aria-live="assertive" aria-atomic="true" data-autohide="false">
+        <div class="toast-header">
+        <i class="fa fa-times mr-2" style="color: red;"></i>
+        <strong class="mr-auto">Failed to add Memory #{{ id - 1 }}</strong>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        </div>
+        <div class="toast-body">
+            Failed to add a new memory to the database.
+        </div>
+    </div>
+    {% endif %}
+</div>
+<div class="container card mb-5">
+    <div class="card-body">
+        <form class="card-text" id="form" action="{{ url_for('add') }}" method="post">
+            <div class="form-group">
+                <label for="id">ID</label>
+                <input class="form-control" type="text" name="id" id="id" placeholder="{{ id }}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="title">What do you want to call this?</label>
+                <input type="text" class="form-control form-control-lg" name="title" id="title">
+            </div>
+            <div class="form-group">
+                <label for="text">What happened?</label>
+                <textarea class="form-control" id="text" rows="3" name="text"></textarea>
+                <small id="textHelp" class="form-text text-muted">Markdown formatting is enabled.</small>
+            </div>
+            <div class="form-group">
+                <label for="date">When did this happen?</label>
+                <input type="date" class="form-control" id="date" name="date">
+            </div>
+            <div class="form-row">
+                <div class="form-group col">
+                    <label for="people">Who was involved?<span id="people-list"></span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="people" name="people">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" id="people-button">Add</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col">
+                    <label for="places">Where did this happen? <span id="places-list"></span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="places" name="places">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" id="places-button">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col">
+                    <label for="source">Source (if imported)</label>
+                    <input type="text" class="form-control" id="source" name="source" placeholder="Manual entry">
+                </div>
+                <div class="form-group col">
+                    <label for="images">Images (links) <span id="images-list"></span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="images" name="images">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" id="images-button">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" name="jsonval" value="" id="jsonval">
+            <button type="submit" class="btn btn-primary">+ Add</button>
+        </form>
+    </div>
+</div>
+<script>
+    $('.toast').toast('show')
+    var arrs = {}
+    var people = {}, places = {}
+    $("#form").submit(function(e) {
+        var form_data = $("#form").serializeArray()
+        form_data[4].value = Object.keys(people)
+        form_data[5].value = Object.keys(places)
+        var data = {}
+        form_data.forEach(d => {
+            data[d.name] = d.value
+        })
+        $("#jsonval").val(JSON.stringify(data))
+        return true
+    })
+    function remove_list(d, e) {
+        delete arrs[d][e.text()]
+        e.remove()
+    }
+    function lister(d) {
+        d = "#" + d
+        $(d + "-button").on('click', function(e) {
+            var text = $(d).val()
+            if (!(text in arrs[d])) {
+                arrs[d][text] = true
+                $(d).val("")
+                $(d + "-list").append("<span onclick=remove_list(" + d + ", this) class=\"badge badge-primary ml-1\">" + text + " <i class=\"fa fa-times-circle\"></i></span>")
+            }
+        })
+    }
+    
+    lister("people")
+    lister("places")
+    lister("images")
+</script>
+{% endblock %}

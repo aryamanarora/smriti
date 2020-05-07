@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}Home{% endblock %}
+{% block header %}Home{% endblock %}
+{% block lead %}You have {{ memories|count }} {% if memories|count == 1 %}memory{% else %}memories{% endif %}.{% endblock %}
+{% block body %}
+<div class="container">
+    <div class="card-columns" style="min-height: 1000px;">
+        {% for memory in memories %}
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ memory.title }}</h5>
+                <div class="card-text">{{ memory.text|safe }}</div>
+                <p class="card-text"><small class="text-muted">{{ memory.natural }}</small></p>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="card bg-dark text-white text-center">
+            <div class="card-body">
+                <h2 class="card-text"><a class="stretched-link" style="color: inherit;" href="/add">+ Add Entry</a></h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

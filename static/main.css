@@ -1,0 +1,10 @@
+.pageheader {
+    padding: 3rem;
+    margin-bottom: 3rem;
+    background-color: #563d7c;
+    color: #cdbfe3;
+}
+
+.card-text > p {
+    margin-bottom: 0rem;
+}
