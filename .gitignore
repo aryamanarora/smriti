@@ -1,2 +1,4 @@
 __pycache__
 *.pyc
+memories.json
+memories2.json

@@ -4,7 +4,7 @@
 {% block body %}
 <div style="position: absolute; top: 0; right: 0;">
     {% if added %}
-    <div class="toast mx-3 mt-3" aria-live="assertive" aria-atomic="true" data-autohide="false">
+    <div class="toast mx-3 mt-3" aria-live="assertive" aria-atomic="true" data-delay="3000">
         <div class="toast-header">
         <i class="fa fa-check mr-2" style="color: green;"></i>
         <strong class="mr-auto">Added Memory #{{ id - 1 }}</strong>
@@ -18,10 +18,10 @@
     </div>
     {% endif %}
     {% if failed %}
-    <div class="toast mx-3 mt-3" aria-live="assertive" aria-atomic="true" data-autohide="false">
+    <div class="toast mx-3 mt-3" aria-live="assertive" aria-atomic="true" data-delay="3000">
         <div class="toast-header">
         <i class="fa fa-times mr-2" style="color: red;"></i>
-        <strong class="mr-auto">Failed to add Memory #{{ id - 1 }}</strong>
+        <strong class="mr-auto">Failed to add Memory #{{ id }}</strong>
         <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -34,7 +34,7 @@
 </div>
 <div class="container card mb-5">
     <div class="card-body">
-        <form class="card-text" id="form" action="{{ url_for('add') }}" method="post">
+        <form class="card-text" id="form" action="#" method="post">
             <div class="form-group">
                 <label for="id">ID</label>
                 <input class="form-control" type="text" name="id" id="id" placeholder="{{ id }}" readonly>
@@ -43,10 +43,15 @@
                 <label for="title">What do you want to call this?</label>
                 <input type="text" class="form-control form-control-lg" name="title" id="title">
             </div>
-            <div class="form-group">
-                <label for="text">What happened?</label>
-                <textarea class="form-control" id="text" rows="3" name="text"></textarea>
-                <small id="textHelp" class="form-text text-muted">Markdown formatting is enabled.</small>
+            <div class="form-row">
+                <div class="form-group col">
+                    <label for="text">What happened?</label>
+                    <div class="form-row">
+                        <textarea class="form-control text-input col mr-2" id="text" rows="3" name="text"></textarea>
+                        <div class="card col ml-2 preview"></div>
+                    </div>
+                    <small id="textHelp" class="form-text text-muted">Markdown formatting is enabled.</small>
+                </div>
             </div>
             <div class="form-group">
                 <label for="date">When did this happen?</label>
@@ -95,11 +100,11 @@
 <script>
     $('.toast').toast('show')
     var arrs = {}
-    var people = {}, places = {}
     $("#form").submit(function(e) {
         var form_data = $("#form").serializeArray()
-        form_data[4].value = Object.keys(people)
-        form_data[5].value = Object.keys(places)
+        form_data[4].value = Object.keys(arrs["people"])
+        form_data[5].value = Object.keys(arrs["places"])
+        form_data[7].value = Object.keys(arrs["images"])
         var data = {}
         form_data.forEach(d => {
             data[d.name] = d.value
@@ -107,18 +112,33 @@
         $("#jsonval").val(JSON.stringify(data))
         return true
     })
-    function remove_list(d, e) {
-        delete arrs[d][e.text()]
-        e.remove()
+
+    $('.text-input').on('change', function() {
+        var text = $('.text-input').val()
+        $.post("/preview", {text: text}, function(resp) {
+            console.log(resp)
+            $('.preview').html(resp)
+        })
+    })
+
+    function lister_add(d, text) {
+        arrs[d][text] = true
+        $("#" + d).val("")
+        $("#" + d + "-list").append(
+            $("<span class=\"badge badge-primary ml-1\">" + text + " <i class=\"fa fa-times-circle\"></i></span>")
+                .on('click', function(f) {
+                    delete arrs[d][text]
+                    $(this).remove()
+                })
+        )
     }
+    
     function lister(d) {
-        d = "#" + d
-        $(d + "-button").on('click', function(e) {
-            var text = $(d).val()
+        arrs[d] = {}
+        $("#" + d + "-button").on('click', function(e) {
+            var text = $("#" + d).val()
             if (!(text in arrs[d])) {
-                arrs[d][text] = true
-                $(d).val("")
-                $(d + "-list").append("<span onclick=remove_list(" + d + ", this) class=\"badge badge-primary ml-1\">" + text + " <i class=\"fa fa-times-circle\"></i></span>")
+                lister_add(d, text)
             }
         })
     }
@@ -126,5 +146,21 @@
     lister("people")
     lister("places")
     lister("images")
+
+    {% if memory %}
+        $(".button").text("Save")
+        {% autoescape off %}
+        $($("#form")[0][0]).val("{{ memory.id }}")
+        $($("#form")[0][1]).val("{{ memory.title }}")
+        $($("#form")[0][2]).val(`{{ memory.raw.replace('`', '\`') }}`)
+        $($("#form")[0][3]).val("{{ memory.date }}")
+        {% for person in memory.people %}lister_add("people", "{{ person }}")
+        {% endfor %}
+        {% for place in memory.places %}lister_add("places", "{{ place }}")
+        {% endfor %}
+        {% for image in memory.images %}lister_add("images", "{{ image }}")
+        {% endfor %}
+        {% endautoescape %}
+    {% endif %}
 </script>
 {% endblock %}

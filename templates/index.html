@@ -3,22 +3,51 @@
 {% block header %}Home{% endblock %}
 {% block lead %}You have {{ memories|count }} {% if memories|count == 1 %}memory{% else %}memories{% endif %}.{% endblock %}
 {% block body %}
-<div class="container">
-    <div class="card-columns" style="min-height: 1000px;">
-        {% for memory in memories %}
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">{{ memory.title }}</h5>
-                <div class="card-text">{{ memory.text|safe }}</div>
-                <p class="card-text"><small class="text-muted">{{ memory.natural }}</small></p>
-            </div>
-        </div>
-        {% endfor %}
-        <div class="card bg-dark text-white text-center">
+<div class="container mb-5">
+    <div class="bricklayer" style="min-height: 1000px;">
+        <div class="card bg-dark text-white text-center shadow mt-2" data-aos="fade-up">
             <div class="card-body">
                 <h2 class="card-text"><a class="stretched-link" style="color: inherit;" href="/add">+ Add Entry</a></h2>
             </div>
         </div>
+        {% for memory in memories %}
+        <div class="card shadow mt-2" data-aos="fade-up" data-aos-delay="50">
+            <div class="row no-gutters">
+                {% if memory.images %}
+                <div class="col-md-8">
+                {% else %}
+                <div>
+                {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title"><a class="stretched-link" style="color: inherit;" href="/memories/{{ memory.id }}">{{ memory.title }}</a></h5>
+                        <small class="card-text">
+                            <p class="text-muted"><i class="fa fa-calendar" style="width: 20px;"></i> {{ memory.date|fulldate }}</p>
+                            {% if memory.places %}{% for place in memory.places %}
+                                <p class="text-muted"><i class="fa fa-map-pin" style="width: 20px;"></i> {{ place }}</p>
+                            {% endfor %}{% endif %}
+                        </small>
+                    </div>
+                </div>
+                {% if memory.images %}
+                <div class="col-md-4">
+                    <img style="object-fit: cover;" class="img-fluid rounded" src="{{ memory.images[0] }}" class="card-img" alt="Card image">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
+<style>
+    @media screen and (min-width: 500px) {
+        .bricklayer-column-sizer {
+            /* divide by 3. */
+            width: 33.3%;
+        }
+    }
+</style>
+<script>
+    var bricklayer = new Bricklayer(document.querySelector('.bricklayer'))
+    AOS.init()
+</script>
 {% endblock %}
